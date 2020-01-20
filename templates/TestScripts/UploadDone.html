@@ -1,0 +1,9 @@
+{% extends 'Base.html' %}
+
+{% block page-header %}
+<h1>上传成功</h1>
+{% endblock %}
+
+{% block table-responsive %}
+<p>上传成功.  <a href="{% url 'TestScripts:ScriptList' %}">返回列表</a>.</p>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'Base.html' %}
+
+{% block page-header %}
+<h1>欢迎 {{ newUser.username }}!</h1>
+{% endblock %}
+
+{% block table-responsive %}
+<h3><p>注册成功. 请 <a href="{% url 'Users:SignIn' %}">登录</a>.</p></h3>
+{% endblock %}

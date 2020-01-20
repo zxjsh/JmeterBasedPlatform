@@ -1,0 +1,157 @@
+from django.shortcuts import render, redirect, HttpResponse, get_object_or_404, get_list_or_404
+from django.http import FileResponse, StreamingHttpResponse
+from wsgiref.util import FileWrapper
+from .forms import uploadFileForms
+from .models import testScript, testFile, testReport
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+import zipfile
+import time
+import glob
+import os
+
+
+# Create your views here.
+
+@login_required
+def scriptUpload(request):
+    if request.method == 'POST':
+        form = uploadFileForms(request.POST, request.FILES)
+        if form.is_valid():
+            newFile = form.save(commit=False)
+            newFile.uploader = request.user
+            newFile.fileName = form.cleaned_data['zipFile'].name
+            # newFile.save()
+
+            unzipFilePath = os.path.join(settings.MEDIA_ROOT, "unzipfiles", time.strftime('%Y'), time.strftime('%m'),
+                                         time.strftime('%d'))
+            newFile.unzipFile = unzipFile(newFile.zipFile, newFile.fileName, unzipFilePath)
+            newFile.save()
+
+            globList = getJmxList(newFile.unzipFile)
+            for jmxFile in globList:
+                jmxName = os.path.splitext(os.path.split(jmxFile)[-1])[0]
+                testScript.objects.create(testFile=newFile, scriptName=jmxName, scriptFile=jmxFile)
+
+            return render(request, 'TestScripts/UploadSuccess.html', None)
+    else:
+        form = uploadFileForms()
+    context = {'form': form}
+    return render(request, 'TestScripts/Upload.html', context)
+
+
+@login_required
+def scriptList(request):
+    userId = None
+    if request.user.id:
+        userId = request.user.id
+        testScriptList = get_list_or_404(testScript, testFile__uploader=userId, isDelete=0)
+        # testScriptList = testScript.objects.filter(testFile__uploader=userId, isDelete=0)
+        context = {'testScriptList': testScriptList}
+        return render(request, 'TestScripts/ScriptList.html', context)
+
+
+@login_required
+def scriptRun(request, scriptId):
+    userId = request.user.id
+    suffix = time.strftime('%Y%m%d%H%M%S')
+    script = get_object_or_404(testScript, testFile__uploader=userId, id=scriptId, isDelete=0)
+    # script = testScript.objects.get(id=scriptId)
+    # reportFilePath = os.path.join(settings.BASE_DIR, "static", "reportfiles")
+    reportFilePath = os.path.join(settings.MEDIA_ROOT, "reportfiles", time.strftime('%Y'), time.strftime('%m'),
+                                  time.strftime('%d'))
+
+    reportDir = runJmx(script.scriptName, script.scriptFile, reportFilePath, suffix)
+    reportName = '%s_%s' % (script.scriptName, suffix)
+
+    reportZip = reportName + '.zip'
+    reportZipPath = os.path.join(settings.MEDIA_ROOT, "reportzipfiles", reportZip)
+
+    zipDir(reportDir, reportZipPath)
+    reportFile = os.path.join(reportDir, 'index.html')
+
+    testReport.objects.create(testScript=script, reportName=reportName, reportFile=reportFile, reportZip=reportZipPath)
+    runCount = script.runTimes + 1
+    testScript.objects.filter(id=scriptId).update(runTimes=runCount)
+
+    return redirect('TestScripts:ScriptList')
+
+
+@login_required
+def reportList(request, scriptId):
+    userId = request.user.id
+    reportList = get_list_or_404(testReport, testScript__testFile__uploader=userId, testScript=scriptId, isDelete=0)
+    # reportList = testReport.objects.filter(testScript__testFile__uploader=userId, testScript=scriptId, isDelete=0)
+    context = {'reportList': reportList}
+    return render(request, 'TestScripts/ReportList.html', context)
+
+
+@login_required
+def reportDownload(request, reportId):
+    userId = request.user.id
+    report = get_object_or_404(testReport, testScript__testFile__uploader=userId, id=reportId, isDelete=0)
+    # report = testReport.objects.get(id=reportId)
+    with open(report.reportZip, 'rb') as file:
+        wrapper = FileWrapper(file)
+        response = HttpResponse(wrapper, content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(report.reportZip)
+        return response
+
+
+@login_required
+def scriptDelete(request, scriptId):
+    script = testScript.objects.filter(id=scriptId).update(isDelete=1)
+    return redirect('TestScripts:ScriptList')
+
+
+@login_required
+def reportDelete(request, reportId):
+    report = testReport.objects.filter(id=reportId).update(isDelete=1)
+    return redirect('TestScripts:ReportList')
+
+
+def runJmx(jmxName, jmxFile, path, suffix):
+    if os.path.exists(path):
+        pass
+    else:
+        os.makedirs(path)
+
+    reportPath = '%s\%s_%s' % (path, jmxName, suffix)
+    os.system(r'jmeter -n -t %s -l %s\%s_%s_result.jtl -e -o %s' % (jmxFile, path, jmxName, suffix, reportPath))
+
+    return reportPath
+
+
+def zipDir(dirpath, outFullName):
+    zip = zipfile.ZipFile(outFullName, "w", zipfile.ZIP_DEFLATED)
+    for path, dirnames, filenames in os.walk(dirpath):
+        fpath = path.replace(dirpath, '')
+
+        for filename in filenames:
+            zip.write(os.path.join(path, filename), os.path.join(fpath, filename))
+    zip.close()
+
+
+def unzipFile(file, fileName, path):
+    if os.path.exists(path):
+        pass
+    else:
+        os.makedirs(path)
+
+    baseName = fileName.replace('.zip', '')
+    unzipPath = os.path.join(path, baseName)
+
+    isZipFile = zipfile.is_zipfile(file)
+    if isZipFile:
+        with zipfile.ZipFile(file) as zf:
+            zf.extractall(unzipPath)
+    else:
+        print('This is not zip')
+
+    return unzipPath
+
+
+def getJmxList(path):
+    globList = glob.glob(pathname=r'%s/*.jmx' % path)
+    # jmxList = [os.path.splitext(os.path.split(jmx)[-1])[0] for jmx in globList]
+    return globList
