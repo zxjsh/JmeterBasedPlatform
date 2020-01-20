@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404, get_list_or_404, HttpResponseRedirect
 from django.http import FileResponse, StreamingHttpResponse
 from wsgiref.util import FileWrapper
-from .forms import uploadFileForms, runScriptForms, downloadReportForms, deleteReportForms, deleteScriptForms
-from .models import testScript, testFile, testReport
+from .forms import uploadFileForms, runScriptForms, downloadReportForms, deleteReportForms, deleteScriptForms, \
+    createSuiteForms
+from .models import testScript, testFile, testReport, testSuite
 from django.conf import settings
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
-from django.views.generic import ListView, DetailView, CreateView, FormView, DeleteView, View
+from django.views.generic import ListView, DetailView, CreateView, FormView, DeleteView, View, UpdateView
 from .myfunction import zipManage, jmxManage
 import time
 import os
@@ -153,3 +154,32 @@ class reportDelete(FormView):
     def get_success_url(self):
         return reverse_lazy('TestScripts:ScriptList')
         # return reverse_lazy('TestScripts:ReportDelete')
+
+
+class suiteList(ListView):
+    template_name = 'TestScripts/SuiteList.html'
+    context_object_name = 'testSuiteList'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return testSuite.objects.filter(isDelete=0).order_by('-createTime')
+
+
+class suiteCreate(CreateView):
+    template_name = 'TestScripts/SuiteCreate.html'
+    form_class = createSuiteForms
+
+    def form_valid(self, form):
+        newSuite = form.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse_lazy('TestScripts:SuiteList')
+
+
+class suiteUpdate(UpdateView):
+    model = testSuite
+    template_name = 'TestScripts/SuiteUpdate.html'
+    form_class = createSuiteForms
+    success_url = reverse_lazy('TestScripts:SuiteList')
+

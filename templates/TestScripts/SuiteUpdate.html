@@ -1,0 +1,15 @@
+{% extends 'Base.html' %}
+
+{% block page-header %}
+<h1>套件更新</h1>
+{% endblock %}
+
+{% block table-responsive %}
+<div>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button value="create" type="submit">更新</button>
+    </form>
+</div>
+{% endblock %}

@@ -46,7 +46,7 @@
             <ul class="nav nav-sidebar">
                 <li><a href="{% url 'TestScripts:ScriptList' %}">脚本列表</a></li>
                 <li><a href="{% url 'TestScripts:ScriptUpload' %}">脚本上传</a></li>
-                <li><a href="#">脚本套件</a></li>
+                <li><a href="{% url 'TestScripts:SuiteList' %}">脚本套件</a></li>
             </ul>
         </div>
         {% endif %}

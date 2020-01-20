@@ -1,9 +1,10 @@
 {% extends 'Base.html' %}
 
 {% block page-header %}
-<h1>脚本列表
-    <a class="btn btn-primary pull-right" href="{% url 'TestScripts:ScriptUpload' %}">上传</a>
+<h1>套件列表
+    <a class="btn btn-primary pull-right" href="{% url 'TestScripts:SuiteCreate' %}">新建</a>
 </h1>
+
 {% endblock %}
 
 {% block table-responsive %}
@@ -11,42 +12,24 @@
     <thead>
     <tr>
         <th>#</th>
-        <th>脚本名称</th>
+        <th>套件名称</th>
         <th>运行次数</th>
         <th>当期状态</th>
         <th>最近执行时间</th>
-        <th>所属文件</th>
         <th>操作</th>
     </tr>
     </thead>
     <tbody>
-    {% for testScrip in testScriptList %}
+    {% for testSuite in testSuiteList %}
     <tr>
         <td>{{ forloop.counter }}</td>
-        <td>{{ testScrip.scriptName }}</td>
-        <td>{{ testScrip.runTimes }}</td>
-        <td>{{ testScrip.status }}</td>
-        <td>{{ testScrip.lastRunTime }}</td>
-        <td>{{ testScrip.testFile }}</td>
+        <td>{{ testSuite.suiteName }}</td>
+        <td>{{ testSuite.runTimes }}</td>
+        <td>{{ testSuite.status }}</td>
+        <td>{{ testSuite.lastRunTime }}</td>
         <td>
             <div class="form-input">
-                <form action="{% url 'TestScripts:ScriptRun' %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="{{ scriptRunForm.scriptId.html_name }}" value="{{ testScrip.id }}"
-                           id="{{ scriptRunForm.scriptId.id_for_label }}">
-                    <input type="submit" class="btn btn-primary" value="执行">
-                </form>
-            </div>
-            <div class="form-input">
-                <form action="{% url 'TestScripts:ScriptDelete' %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="{{ scriptDeleteForm.scriptId.html_name }}" value="{{ testScrip.id }}"
-                           id="{{ scriptDeleteForm.scriptId.id_for_label }}">
-                    <input type="submit" class="btn btn-primary" value="删除">
-                </form>
-            </div>
-            <div class="form-input">
-                <a class="btn btn-primary" href="{% url 'TestScripts:ReportList' testScrip.id %}">报告</a>
+                <a class="btn btn-primary" href="{% url 'TestScripts:SuiteUpdate' testSuite.id %}">更新</a>
             </div>
         </td>
         {% endfor %}

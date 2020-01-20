@@ -12,5 +12,8 @@ urlpatterns = [
     path('ReportDownload/', views.reportDownload.as_view(), name='ReportDownload'),
     path('ScriptDelete/', views.scriptDelete.as_view(), name='ScriptDelete'),
     path('ReportDelete/', views.reportDelete.as_view(), name='ReportDelete'),
+    path('SuiteList/', views.suiteList.as_view(), name='SuiteList'),
+    path('SuiteCreate/', views.suiteCreate.as_view(), name='SuiteCreate'),
+    path('SuiteUpdate/<int:pk>/', views.suiteUpdate.as_view(), name='SuiteUpdate'),
 
 ]

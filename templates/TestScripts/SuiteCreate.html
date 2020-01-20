@@ -1,0 +1,15 @@
+{% extends 'Base.html' %}
+
+{% block page-header %}
+<h1>套件新建</h1>
+{% endblock %}
+
+{% block table-responsive %}
+<div>
+    <form action="{% url 'TestScripts:SuiteCreate' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button value="create" type="submit">创建</button>
+    </form>
+</div>
+{% endblock %}

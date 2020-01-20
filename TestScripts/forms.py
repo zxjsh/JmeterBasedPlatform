@@ -1,5 +1,5 @@
 from django import forms
-from .models import testFile, testScript
+from .models import testFile, testScript, testSuite
 
 
 class uploadFileForms(forms.ModelForm):
@@ -22,3 +22,9 @@ class deleteScriptForms(forms.Form):
 
 class deleteReportForms(forms.Form):
     reportId = forms.IntegerField(max_value=1000, widget=forms.HiddenInput)
+
+
+class createSuiteForms(forms.ModelForm):
+    class Meta:
+        model = testSuite
+        fields = ('suiteName', 'testScript')

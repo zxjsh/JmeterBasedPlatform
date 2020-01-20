@@ -47,3 +47,15 @@ class testReport(models.Model):
     reportZip = models.CharField(max_length=250, blank=True)
     createTime = models.DateTimeField(auto_now_add=True)
     isDelete = models.BooleanField(default=0, choices=delete_choices)
+
+
+class testSuite(models.Model):
+    delete_choices = ((0, 'undelete'), (1, 'delete'))
+
+    testScript = models.ManyToManyField(testScript)
+    suiteName = models.CharField(max_length=50)
+    runTimes = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, default='wait')
+    lastRunTime = models.DateTimeField(auto_now=True)
+    createTime = models.DateTimeField(auto_now_add=True)
+    isDelete = models.BooleanField(default=0, choices=delete_choices)

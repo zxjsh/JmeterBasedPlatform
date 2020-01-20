@@ -49,3 +49,6 @@ class jmxManage():
         globList = glob.glob(pathname=r'%s/*.jmx' % path)
         # jmxList = [os.path.splitext(os.path.split(jmx)[-1])[0] for jmx in globList]
         return globList
+
+    def runJmxs(self):
+        pass

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import testFile, testScript, testReport
+from .models import testFile, testScript, testReport, testSuite
 
 
 # Register your models here.
@@ -17,3 +17,8 @@ class testScriptAdmin(admin.ModelAdmin):
 @admin.register(testReport)
 class testReportAdmin(admin.ModelAdmin):
     list_display = ['testScript', 'reportName', 'reportFile', 'reportZip', 'isDelete', 'createTime']
+
+
+@admin.register(testSuite)
+class testSuiteAdmin(admin.ModelAdmin):
+    list_display = ['suiteName', 'runTimes', 'status', 'lastRunTime', 'isDelete', 'createTime']
